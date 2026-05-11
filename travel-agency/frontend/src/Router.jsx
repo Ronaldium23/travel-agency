@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
-import Login from './pages/Login';
+import LoginPage from './pages/LoginPage';
 import Catalog from './pages/Catalog';
 import AdminDashboard from './pages/AdminDashboard';
 import ReservationHistory from './pages/ReservationHistory';
@@ -10,7 +10,7 @@ export default function Router() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/catalog" element={<Catalog />} />
         <Route
           path="/reservations"
@@ -33,3 +33,4 @@ export default function Router() {
     </BrowserRouter>
   );
 }
+
