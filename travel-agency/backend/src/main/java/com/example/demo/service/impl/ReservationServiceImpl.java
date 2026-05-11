@@ -1,17 +1,17 @@
 package com.example.demo.service.impl;
 
-import com.example.travel_agency.dto.request.ReservationRequestDTO;
-import com.example.travel_agency.dto.response.ReservationResponseDTO;
-import com.example.travel_agency.exception.BusinessException;
-import com.example.travel_agency.exception.ResourceNotFoundException;
-import com.example.travel_agency.model.Reservation;
-import com.example.travel_agency.model.TravelPackage;
-import com.example.travel_agency.model.User;
-import com.example.travel_agency.repository.PromotionRepository;
-import com.example.travel_agency.repository.ReservationRepository;
-import com.example.travel_agency.repository.TravelPackageRepository;
-import com.example.travel_agency.repository.UserRepository;
-import com.example.travel_agency.service.ReservationService;
+import com.example.demo.dto.request.ReservationRequestDTO;
+import com.example.demo.dto.response.ReservationResponseDTO;
+import com.example.demo.exception.BusinessException;
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.Reservation;
+import com.example.demo.model.TravelPackage;
+import com.example.demo.model.User;
+import com.example.demo.repository.PromotionRepository;
+import com.example.demo.repository.ReservationRepository;
+import com.example.demo.repository.TravelPackageRepository;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.service.ReservationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,7 +77,6 @@ public class ReservationServiceImpl implements ReservationService {
         TravelPackage pkg = travelPackageRepository.findById(request.getPackageId())
                 .orElseThrow(() -> new ResourceNotFoundException("Package not found with id: " + request.getPackageId()));
 
-        // Validaciones del enunciado
         if (pkg.getStatus() != TravelPackage.PackageStatus.AVAILABLE) {
             throw new BusinessException("Package is not available for reservation");
         }
@@ -85,7 +84,6 @@ public class ReservationServiceImpl implements ReservationService {
             throw new BusinessException("Not enough available slots");
         }
 
-        // Calcular montos
         BigDecimal baseAmount = pkg.getPrice()
                 .multiply(new BigDecimal(request.getPassengerCount()));
 
@@ -98,14 +96,12 @@ public class ReservationServiceImpl implements ReservationService {
 
         BigDecimal finalAmount = baseAmount.subtract(discountAmount);
 
-        // Descontar cupos
         pkg.setAvailableSlots(pkg.getAvailableSlots() - request.getPassengerCount());
         if (pkg.getAvailableSlots() == 0) {
             pkg.setStatus(TravelPackage.PackageStatus.SOLD_OUT);
         }
         travelPackageRepository.save(pkg);
 
-        // Crear reserva
         Reservation reservation = new Reservation();
         reservation.setUser(user);
         reservation.setTravelPackage(pkg);
@@ -130,7 +126,6 @@ public class ReservationServiceImpl implements ReservationService {
             throw new BusinessException("Reservation is already cancelled");
         }
 
-        // Liberar cupos
         TravelPackage pkg = reservation.getTravelPackage();
         pkg.setAvailableSlots(pkg.getAvailableSlots() + reservation.getPassengerCount());
         if (pkg.getStatus() == TravelPackage.PackageStatus.SOLD_OUT) {
@@ -145,19 +140,16 @@ public class ReservationServiceImpl implements ReservationService {
     private BigDecimal calculateDiscountRate(User user, int passengerCount, String packageId) {
         BigDecimal totalDiscount = BigDecimal.ZERO;
 
-        // Descuento por grupo
         if (passengerCount >= GROUP_THRESHOLD) {
             totalDiscount = totalDiscount.add(GROUP_DISCOUNT);
         }
 
-        // Descuento por cliente frecuente
         long confirmedReservations = reservationRepository
                 .countConfirmedReservationsByUser(user.getId());
         if (confirmedReservations >= FREQUENT_CLIENT_THRESHOLD) {
             totalDiscount = totalDiscount.add(FREQUENT_CLIENT_DISCOUNT);
         }
 
-        // Descuento por promoción activa
         var activePromotions = promotionRepository
                 .findActivePromotionsByPackage(packageId, LocalDate.now());
         if (!activePromotions.isEmpty()) {
@@ -167,7 +159,6 @@ public class ReservationServiceImpl implements ReservationService {
             totalDiscount = totalDiscount.add(promoDiscount);
         }
 
-        // Aplicar límite máximo de descuento
         return totalDiscount.min(MAX_DISCOUNT);
     }
 

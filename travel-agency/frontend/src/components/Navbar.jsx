@@ -29,9 +29,10 @@ export default function Navbar() {
           </Link>
         )}
 
-        {user?.role === 'ADMIN' && (
-          <div style={styles.dropdown}>
-            <span style={styles.link}>Administración</span>
+        {/* user.roles es array — se verifica con .includes() */}
+        {user?.roles?.includes('ADMIN') && (
+          <div className="dropdown" style={styles.dropdown}>
+            <span style={styles.link}>Administración ▾</span>
             <div style={styles.dropdownMenu}>
               <Link to="/admin/packages" style={styles.dropdownItem}>
                 Gestionar paquetes
@@ -59,6 +60,9 @@ export default function Navbar() {
           </div>
         ) : (
           <div style={styles.authLinks}>
+            <Link to="/register" style={styles.registerBtn}>
+              Registrarse
+            </Link>
             <Link to="/login" style={styles.loginBtn}>
               Iniciar sesión
             </Link>
@@ -83,31 +87,11 @@ const styles = {
     zIndex: 1000,
     boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
   },
-  brand: {
-    fontSize: '20px',
-    fontWeight: '700',
-  },
-  brandLink: {
-    color: '#e94560',
-    textDecoration: 'none',
-    letterSpacing: '1px'
-  },
-  links: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '24px'
-  },
-  link: {
-    color: '#ccc',
-    textDecoration: 'none',
-    fontSize: '14px',
-    cursor: 'pointer',
-    transition: 'color 0.2s',
-  },
-  dropdown: {
-    position: 'relative',
-    cursor: 'pointer',
-  },
+  brand: { fontSize: '20px', fontWeight: '700' },
+  brandLink: { color: '#e94560', textDecoration: 'none', letterSpacing: '1px' },
+  links: { display: 'flex', alignItems: 'center', gap: '24px' },
+  link: { color: '#ccc', textDecoration: 'none', fontSize: '14px', cursor: 'pointer', transition: 'color 0.2s' },
+  dropdown: { position: 'relative', cursor: 'pointer' },
   dropdownMenu: {
     display: 'none',
     position: 'absolute',
@@ -117,28 +101,12 @@ const styles = {
     borderRadius: '8px',
     padding: '8px 0',
     minWidth: '180px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
   },
-  dropdownItem: {
-    display: 'block',
-    padding: '10px 16px',
-    color: '#ccc',
-    textDecoration: 'none',
-    fontSize: '14px',
-  },
-  auth: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  userSection: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px'
-  },
-  userName: {
-    fontSize: '14px',
-    color: '#ccc'
-  },
+  dropdownItem: { display: 'block', padding: '10px 16px', color: '#ccc', textDecoration: 'none', fontSize: '14px' },
+  auth: { display: 'flex', alignItems: 'center' },
+  userSection: { display: 'flex', alignItems: 'center', gap: '16px' },
+  userName: { fontSize: '14px', color: '#ccc' },
   logoutBtn: {
     padding: '8px 16px',
     backgroundColor: 'transparent',
@@ -146,12 +114,17 @@ const styles = {
     color: '#e94560',
     borderRadius: '6px',
     cursor: 'pointer',
-    fontSize: '14px',
+    fontSize: '14px'
   },
-  authLinks: {
-    display: 'flex',
-    gap: '12px',
-    alignItems: 'center'
+  authLinks: { display: 'flex', gap: '12px', alignItems: 'center' },
+  registerBtn: {
+    padding: '8px 20px',
+    backgroundColor: 'transparent',
+    color: '#ccc',
+    border: '1px solid #555',
+    borderRadius: '6px',
+    textDecoration: 'none',
+    fontSize: '14px'
   },
   loginBtn: {
     padding: '8px 20px',

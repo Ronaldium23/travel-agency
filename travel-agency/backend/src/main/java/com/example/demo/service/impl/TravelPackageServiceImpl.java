@@ -1,12 +1,12 @@
 package com.example.demo.service.impl;
 
-import com.example.travel_agency.dto.request.TravelPackageRequestDTO;
-import com.example.travel_agency.dto.response.TravelPackageResponseDTO;
-import com.example.travel_agency.exception.BusinessException;
-import com.example.travel_agency.exception.ResourceNotFoundException;
-import com.example.travel_agency.model.TravelPackage;
-import com.example.travel_agency.repository.TravelPackageRepository;
-import com.example.travel_agency.service.TravelPackageService;
+import com.example.demo.dto.request.TravelPackageRequestDTO;
+import com.example.demo.dto.response.TravelPackageResponseDTO;
+import com.example.demo.exception.BusinessException;
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.TravelPackage;
+import com.example.demo.repository.TravelPackageRepository;
+import com.example.demo.service.TravelPackageService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

@@ -1,10 +1,10 @@
 package com.example.demo.service.impl;
 
-import com.example.travel_agency.dto.response.PackageRankingDTO;
-import com.example.travel_agency.dto.response.SalesReportDTO;
-import com.example.travel_agency.model.Reservation;
-import com.example.travel_agency.repository.ReservationRepository;
-import com.example.travel_agency.service.ReportService;
+import com.example.demo.dto.response.PackageRankingDTO;
+import com.example.demo.dto.response.SalesReportDTO;
+import com.example.demo.model.Reservation;
+import com.example.demo.repository.ReservationRepository;
+import com.example.demo.service.ReportService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -44,7 +44,6 @@ public class ReportServiceImpl implements ReportService {
         List<Reservation> reservations = reservationRepository
                 .findByDateRangeExcludingCancelled(start, end);
 
-        // Agrupar por paquete
         Map<String, List<Reservation>> groupedByPackage = reservations.stream()
                 .collect(Collectors.groupingBy(r -> r.getTravelPackage().getId()));
 
@@ -65,7 +64,6 @@ public class ReportServiceImpl implements ReportService {
                             .reduce(BigDecimal.ZERO, BigDecimal::add));
                     return dto;
                 })
-                // Ordenar por cantidad de reservas desc, luego alfabético
                 .sorted(Comparator.comparingLong(PackageRankingDTO::getTotalReservations)
                         .reversed()
                         .thenComparing(PackageRankingDTO::getPackageName))

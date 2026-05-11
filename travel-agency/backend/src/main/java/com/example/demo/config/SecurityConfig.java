@@ -6,13 +6,18 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -43,7 +48,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/reservations").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/reports/**").hasRole("ADMIN")
 
-                        // Rutas autenticadas (requieren rol CLIENT o ADMIN)
+                        // Rutas autenticadas
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/reservations/{id}").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/reservations/user/**").authenticated()
@@ -52,7 +57,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/payments/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/payments").authenticated()
 
-                        // Cualquier otra ruta requiere autenticación
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -64,27 +68,37 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        authoritiesConverter.setAuthoritiesClaimName("realm_access");
-        authoritiesConverter.setAuthorityPrefix("ROLE_");
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
 
-        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            // Extrae los roles del claim realm_access.roles
-            var authorities = authoritiesConverter.convert(jwt);
-            return authorities;
+        // Extrae correctamente los roles desde realm_access.roles del token de Keycloak
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
+            if (realmAccess == null) {
+                return Collections.emptyList();
+            }
+
+            Object rolesObj = realmAccess.get("roles");
+            if (!(rolesObj instanceof List<?>)) {
+                return Collections.emptyList();
+            }
+
+            List<?> roles = (List<?>) rolesObj;
+            return roles.stream()
+                    .filter(role -> role instanceof String)
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                    .collect(Collectors.toList());
         });
 
-        return jwtAuthenticationConverter;
+        return converter;
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:5173",  // Frontend Vite
-                "http://localhost:3000",   // Frontend alternativo
-                "http://localhost:80",     // Nginx
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://localhost:80",
                 "http://localhost"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

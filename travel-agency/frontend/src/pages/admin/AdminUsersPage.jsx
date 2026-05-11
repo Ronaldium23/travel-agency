@@ -11,7 +11,8 @@ export default function AdminUsersPage() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (!user || user.role !== 'ADMIN') {
+    // user.roles es array — se usa .includes() para verificar el rol ADMIN
+    if (!user || !user.roles?.includes('ADMIN')) {
       navigate('/')
       return
     }
@@ -81,29 +82,19 @@ export default function AdminUsersPage() {
                       <td style={styles.td}>{u.email}</td>
                       <td style={styles.td}>{u.phone || '-'}</td>
                       <td style={styles.td}>
-                        <span style={{
-                          ...styles.badge,
-                          color: rc.color,
-                          backgroundColor: rc.bg
-                        }}>
+                        <span style={{ ...styles.badge, color: rc.color, backgroundColor: rc.bg }}>
                           {u.role}
                         </span>
                       </td>
                       <td style={styles.td}>
-                        <span style={{
-                          ...styles.badge,
-                          color: sc.color,
-                          backgroundColor: sc.bg
-                        }}>
+                        <span style={{ ...styles.badge, color: sc.color, backgroundColor: sc.bg }}>
                           {u.status}
                         </span>
                       </td>
                       <td style={styles.td}>
                         <select
                           value={u.status}
-                          onChange={(e) =>
-                            handleStatusChange(u.id, e.target.value)
-                          }
+                          onChange={(e) => handleStatusChange(u.id, e.target.value)}
                           style={styles.statusSelect}
                         >
                           <option value="ACTIVE">Activo</option>
@@ -124,57 +115,23 @@ export default function AdminUsersPage() {
 }
 
 const styles = {
-  page: {
-    minHeight: 'calc(100vh - 64px)',
-    backgroundColor: '#f5f5f5',
-    padding: '32px 16px'
-  },
+  page: { minHeight: 'calc(100vh - 64px)', backgroundColor: '#f5f5f5', padding: '32px 16px' },
   container: { maxWidth: '1000px', margin: '0 auto' },
-  title: {
-    fontSize: '24px',
-    fontWeight: '700',
-    color: '#1a1a2e',
-    marginBottom: '24px'
-  },
+  title: { fontSize: '24px', fontWeight: '700', color: '#1a1a2e', marginBottom: '24px' },
   error: {
-    backgroundColor: '#fff0f0',
-    color: '#e94560',
-    padding: '12px',
-    borderRadius: '8px',
-    marginBottom: '16px',
-    fontSize: '14px'
+    backgroundColor: '#fff0f0', color: '#e94560', padding: '12px',
+    borderRadius: '8px', marginBottom: '16px', fontSize: '14px'
   },
   tableWrap: { overflowX: 'auto' },
   table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    backgroundColor: '#fff',
-    borderRadius: '12px',
-    overflow: 'hidden',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+    width: '100%', borderCollapse: 'collapse', backgroundColor: '#fff',
+    borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
   },
   thead: { backgroundColor: '#1a1a2e' },
-  th: {
-    padding: '14px 16px',
-    textAlign: 'left',
-    fontSize: '13px',
-    fontWeight: '500',
-    color: '#fff'
-  },
+  th: { padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '500', color: '#fff' },
   tr: { borderBottom: '1px solid #f0f0f0' },
   td: { padding: '14px 16px', fontSize: '14px', color: '#333' },
-  badge: {
-    padding: '4px 10px',
-    borderRadius: '20px',
-    fontSize: '12px',
-    fontWeight: '500'
-  },
-  statusSelect: {
-    padding: '6px 8px',
-    borderRadius: '6px',
-    border: '1px solid #ddd',
-    fontSize: '12px',
-    cursor: 'pointer'
-  },
+  badge: { padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '500' },
+  statusSelect: { padding: '6px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px', cursor: 'pointer' },
   center: { textAlign: 'center', color: '#999', padding: '40px' }
 }

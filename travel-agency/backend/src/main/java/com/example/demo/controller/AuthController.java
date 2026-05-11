@@ -2,9 +2,14 @@ package com.example.demo.controller;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import java.util.HashMap;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
 import java.util.Map;
 
 @RestController
@@ -15,6 +20,10 @@ public class AuthController {
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:http://localhost:8080/realms/Tingeso_Db}")
     private String keycloakIssuerUri;
 
+    // Inyectado desde variable de entorno KEYCLOAK_CLIENT_SECRET
+    @Value("${keycloak.client-secret}")
+    private String keycloakClientSecret;
+
     private final RestTemplate restTemplate = new RestTemplate();
 
     @PostMapping("/login")
@@ -24,19 +33,23 @@ public class AuthController {
         try {
             String tokenUrl = keycloakIssuerUri + "/protocol/openid-connect/token";
 
-            Map<String, String> body = new HashMap<>();
-            body.put("grant_type", "password");
-            body.put("client_id", "travel-agency-client");
-            body.put("client_secret", "${KEYCLOAK_CLIENT_SECRET}"); // Usa variable de entorno
-            body.put("username", username);
-            body.put("password", password);
-            body.put("scope", "openid profile email");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-            Map<String, Object> response = restTemplate.postForObject(tokenUrl, body, Map.class);
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.add("grant_type", "password");
+            body.add("client_id", "travel-agency-client");
+            body.add("client_secret", keycloakClientSecret);
+            body.add("username", username);
+            body.add("password", password);
+            body.add("scope", "openid profile email");
+
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restTemplate.postForObject(tokenUrl, request, Map.class);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Invalid credentials");
             return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
         }
     }
@@ -47,13 +60,19 @@ public class AuthController {
         try {
             String tokenUrl = keycloakIssuerUri + "/protocol/openid-connect/token";
 
-            Map<String, String> body = new HashMap<>();
-            body.put("grant_type", "refresh_token");
-            body.put("client_id", "travel-agency-client");
-            body.put("client_secret", "${KEYCLOAK_CLIENT_SECRET}");
-            body.put("refresh_token", refreshToken);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-            Map<String, Object> response = restTemplate.postForObject(tokenUrl, body, Map.class);
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.add("grant_type", "refresh_token");
+            body.add("client_id", "travel-agency-client");
+            body.add("client_secret", keycloakClientSecret);
+            body.add("refresh_token", refreshToken);
+
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restTemplate.postForObject(tokenUrl, request, Map.class);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));

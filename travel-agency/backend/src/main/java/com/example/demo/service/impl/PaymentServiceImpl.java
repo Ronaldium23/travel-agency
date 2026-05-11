@@ -1,14 +1,14 @@
 package com.example.demo.service.impl;
 
-import com.example.travel_agency.dto.request.PaymentRequestDTO;
-import com.example.travel_agency.dto.response.PaymentResponseDTO;
-import com.example.travel_agency.exception.BusinessException;
-import com.example.travel_agency.exception.ResourceNotFoundException;
-import com.example.travel_agency.model.Payment;
-import com.example.travel_agency.model.Reservation;
-import com.example.travel_agency.repository.PaymentRepository;
-import com.example.travel_agency.repository.ReservationRepository;
-import com.example.travel_agency.service.PaymentService;
+import com.example.demo.dto.request.PaymentRequestDTO;
+import com.example.demo.dto.response.PaymentResponseDTO;
+import com.example.demo.exception.BusinessException;
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.Payment;
+import com.example.demo.model.Reservation;
+import com.example.demo.repository.PaymentRepository;
+import com.example.demo.repository.ReservationRepository;
+import com.example.demo.service.PaymentService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -1,7 +1,16 @@
-import React, { createContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useState, useCallback, useEffect, useContext } from 'react';
 import axios from 'axios';
 
 export const AuthContext = createContext();
+
+// Hook de conveniencia — usado en todos los componentes
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 const decodeToken = (token) => {
   try {
@@ -17,7 +26,18 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('access_token') || null);
-  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refresh_token') || null);
+  const [refreshTokenValue, setRefreshTokenValue] = useState(
+    localStorage.getItem('refresh_token') || null
+  );
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('token_expires_at');
+    setToken(null);
+    setRefreshTokenValue(null);
+    setUser(null);
+  }, []);
 
   // Restaurar sesión al montar
   useEffect(() => {
@@ -27,11 +47,11 @@ export const AuthProvider = ({ children }) => {
         setUser({
           id: decoded.sub,
           email: decoded.email,
-          name: decoded.name || decoded.preferred_username,
+          fullName: decoded.name || decoded.preferred_username,
+          // roles es siempre un array — usado en toda la app con .includes()
           roles: decoded.realm_access?.roles || []
         });
       } else {
-        // Token expirado, limpiar
         logout();
       }
     }
@@ -51,13 +71,13 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token_expires_at', Date.now() + expires_in * 1000);
 
       setToken(access_token);
-      setRefreshToken(refresh_token);
+      setRefreshTokenValue(refresh_token);
 
       const decoded = decodeToken(access_token);
       setUser({
         id: decoded.sub,
         email: decoded.email,
-        name: decoded.name || decoded.preferred_username,
+        fullName: decoded.name || decoded.preferred_username,
         roles: decoded.realm_access?.roles || []
       });
 
@@ -68,21 +88,12 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('token_expires_at');
-    setToken(null);
-    setRefreshToken(null);
-    setUser(null);
-  }, []);
-
   const refreshAccessToken = useCallback(async () => {
-    if (!refreshToken) return false;
+    if (!refreshTokenValue) return false;
 
     try {
       const response = await axios.post('/api/auth/refresh', null, {
-        params: { refreshToken }
+        params: { refreshToken: refreshTokenValue }
       });
 
       const { access_token, expires_in } = response.data;
@@ -96,7 +107,7 @@ export const AuthProvider = ({ children }) => {
       setUser({
         id: decoded.sub,
         email: decoded.email,
-        name: decoded.name || decoded.preferred_username,
+        fullName: decoded.name || decoded.preferred_username,
         roles: decoded.realm_access?.roles || []
       });
 
@@ -106,8 +117,9 @@ export const AuthProvider = ({ children }) => {
       logout();
       return false;
     }
-  }, [refreshToken]);
+  }, [refreshTokenValue, logout]);
 
+  // Comprueba si el usuario tiene un rol determinado (usa el array roles)
   const hasRole = useCallback((role) => {
     return user?.roles?.includes(role) || false;
   }, [user]);
