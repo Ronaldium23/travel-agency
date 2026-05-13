@@ -1,4 +1,3 @@
-version: '3.9'
 
 services:
   # Base de datos PostgreSQL
@@ -13,6 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./posgres:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -34,9 +34,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/travelagency
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-1811}
+      SPRING_SQL_INIT_MODE: always
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/Tingeso_Db
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/Tingeso_Db/protocol/openid-connect/certs
-      # Inyecta el secreto real desde .env — nunca hardcodeado
+      # Inyecta el secreto real desde .env o variable de entorno
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
       SERVER_PORT: 8090
     depends_on:
@@ -61,6 +62,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/travelagency
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-1811}
+      SPRING_SQL_INIT_MODE: always
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/Tingeso_Db
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/Tingeso_Db/protocol/openid-connect/certs
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
@@ -87,6 +89,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/travelagency
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-1811}
+      SPRING_SQL_INIT_MODE: always
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/Tingeso_Db
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/Tingeso_Db/protocol/openid-connect/certs
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
@@ -127,17 +130,21 @@ services:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
+      KC_DB_URL: jdbc:postgresql://postgres:5432/travelagency
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-1811}
       KC_PROXY: edge
       KC_HOSTNAME: keycloak
     ports:
       - "8080:8080"
+    volumes:
+      - ./keycloak/import:/opt/keycloak/data/import
     depends_on:
       postgres:
         condition: service_healthy
-    command: start-dev
+    command:
+      - start-dev
+      - --import-realm
     networks:
       - travelagency-network
     restart: unless-stopped

@@ -1,6 +1,6 @@
 import React, { useEffect, useContext } from 'react';
 import { AuthContext, AuthProvider } from './context/AuthContext';
-import { setAuthContext } from './utils/axiosConfig';
+import { setAuthContext } from './api/axiosConfig';
 import Router from './Router';
 
 const AppContent = () => {
